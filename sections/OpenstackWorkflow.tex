@@ -1,0 +1,12 @@
+The VM workflow:
+
+(1) The user use the openstack dashboard - horizon to create the instance.
+(2) Horizon send HTTP request to keystone for authentication.
+(3) Keystone send token back to the horizon.
+(4) Horizon send POST request to Nova. It contain the token and request for create instance.
+(5) Nova send HTTP request to validate token to keystone.
+(6) If request has been validated, no action has been taken yet.
+(7) Nova call Neutron API to request provision network for instance.
+(8) Neutron configuration IP address, gateway, subnet, DNS, etc.
+(9) Nova request the instance image from Glance via imageid.
+(10) If the imageid found, it send the URI back to nova and nova download image base on this URI.

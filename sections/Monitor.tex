@@ -1,0 +1,14 @@
+	 \enquote{ 80\% of the mean time to repair is wasted on trying to locate the issue } - gartner. 
+ That a reason, I need to monitor and handle the error of the system. In Openstack, I must monitor and maintain a lot of server and services. In particular, some of services must be high availability such as neutron, nova metadata, DHCP agent ..... The Openstack didn't support services to do that. Consequently, I will zabbix to monitoring the healthy of system. All of them are open source software. . This solution is very useful to identity problem from server or services. The aim of zabbix is monitoring the status of all nodes such as ram, CPU, memory, disk,..etc. and alert the notification when something to error.
+Openstack platform has the ceilometer service to monitor the status of instance. But this service didn't monitor the physical server. 
+Openstack is Monitor as a service (MOaaS) are still at  \enquote{ blueprint } state.
+ Consequently, I need to monitor the healthy of server and alert me when the problem happen . 
+There are many open source software can do it such as: nagios, Zabbix, Zennos ...etc. But the monitor solution must be monitoring the physical hardware, the application run on it and the virtual machine. In this case, i choose Zabbix because it is a enterprise-class open source distributed monitoring solution and  easy to deploy, easy to monitor, the lower hardware than another tool. Beside, Zabbix has the real-time graphing to monitor items by immediately graphed.
+ Zabbix has four component: Zabbix Server, Zabbix proxy, Zabbix Agent, Web Interface. Zabbix proxy is a cache for zabbix server and very useful in the big network.
+ But in this case, i will not deployment that. 
+\begin{itemize}
+  \item Zabbix Server: It's a central component and responsible for receive data from agent and store all configuration, statistical and operational data
+
+  \item Zabbix Agent: It's deployed on the remote node and collect the data to send Zabbix server.
+	\item Web Interface: It's provide to access zabbix from anywhere and any platform. Beside the web interface is very useful to manage and configure without using any command.
+\end{itemize}

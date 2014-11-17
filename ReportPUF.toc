@@ -1,0 +1,28 @@
+\contentsline {chapter}{\hbox to\@tempdima {\hfil }Abstract}{1}
+\contentsline {chapter}{\numberline {1}INTRODUCTION}{2}
+\contentsline {section}{\numberline {1.1}The schedule table}{2}
+\contentsline {section}{\numberline {1.2}The Report Structure: }{2}
+\contentsline {chapter}{\numberline {2}BACKGROUND}{4}
+\contentsline {section}{\numberline {2.1}Introduction Cloud Computing}{4}
+\contentsline {section}{\numberline {2.2}Introduction Openstack platform}{5}
+\contentsline {subsection}{\numberline {2.2.1}What is Openstack}{5}
+\contentsline {subsection}{\numberline {2.2.2}Openstack Workflow}{5}
+\contentsline {subsection}{\numberline {2.2.3}Openstack Comute}{6}
+\contentsline {subsection}{\numberline {2.2.4}Openstack Network}{6}
+\contentsline {subsection}{\numberline {2.2.5}Openstack Storage}{6}
+\contentsline {subsection}{\numberline {2.2.6}Openstack Dashboard}{6}
+\contentsline {subsection}{\numberline {2.2.7}Openstack Shareservice}{6}
+\contentsline {chapter}{\numberline {3}DEPLOYMENT}{7}
+\contentsline {section}{\numberline {3.1}Topology}{7}
+\contentsline {section}{\numberline {3.2}Topology}{7}
+\contentsline {section}{\numberline {3.3}Log Management}{7}
+\contentsline {subsection}{\numberline {3.3.1}Configure on the remote node}{8}
+\contentsline {subsection}{\numberline {3.3.2}Configure on the central log node}{8}
+\contentsline {section}{\numberline {3.4}Monitor}{10}
+\contentsline {chapter}{\numberline {4}DEMO}{12}
+\contentsline {section}{\numberline {4.1}Create Instance}{12}
+\contentsline {section}{\numberline {4.2}Create Volume}{12}
+\contentsline {section}{\numberline {4.3}Upload file}{12}
+\contentsline {chapter}{\numberline {5}CONCLUSION AND FUTURE WORK}{13}
+\contentsline {chapter}{References}{14}
+\contentsline {chapter}{\numberline {A}Script for automate install}{15}

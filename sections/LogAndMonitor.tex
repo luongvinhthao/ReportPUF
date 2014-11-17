@@ -1,0 +1,29 @@
+
+	 \enquote{ 80\% of the mean time to repair is wasted on trying to locate the issue } - gartner. That a reason, I need to monitor and handle the error of the system. In Openstack, I must monitor and maintain a lot of server and services. In particular, some of services must be high availability such as neutron, nova metadata, DHCP agent .....Therefore, we need investment the log agreement, monitor and alert for fast detection and recovery. The Openstack didn't support services to do that. Consequently, I will use the logstash to  deployed central log server and zabbix to monitoring the healthy of system. All of them are open source software. The purpose of central log server is log agreement from all of service in openstack. This solution is very useful to identity problem from server or services. The aim of zabbix is monitoring the status of all nodes such as ram, CPU, memory, disk,..etc. and alert the notification when something to error.
+
+\subsection{Log Management}
+Logging is an important activity in all computer systems, and OpenStack is the same. It allows an administrator to track down problematic activity that can be used to help provide a solution.Understanding where the services log and managing those logs to allow administrator to identify problems quickly and easily. Understanding logging in OpenStack is important to ensure the  environment is healthy and the able to submit log entries back to the community to help fix bugs. For log investigation, some tool like cat, tail, grep may be useful to diagnose and identity the problem in the log file. But what happen if we have a lot of servers and we want to log collection, processing and extracting data from the huge of log event. Some command above cannot solve this problem. All of the log event need to be centralize. Therefore, I will deploy the central log server to collect log event, parsing, indexing and storing to help the administrator track down the problem. There are many tool to do it but I need a solution easy to deploy, easy to operate, scale and open source. In this case, I choose some tool to do that. I install four component: Logstash, Elasticsearch, Kibana, Rsyslog (default install on ubuntu).
+	Hinh
+\begin{itemize}
+	\item Logstash: Receive log event from remote node and index the log. logstash is particularly useful since not all components follow the same format for log messages. logstash grok filter helps normalize various log messages into a format that can be indexed and searched.
+	\item Elasticsearch: Store the log event and allow to search  
+	\item Kibana: Provide the web interface to easy monitor and handle the log.
+	\item Rsyslog: send log event from service of openstack to logstash. It used to install on all of the remote node 
+\end{itemize}
+	 
+	\subsubsection{Configure on the remote node}
+
+	
+
+
+\subsection{Monitor}
+Openstack platform has the ceilometer service to monitor the status of instance. But this service didn't monitor the physical server. Consequently, I build another server to monitor the healthy of server and alert me when the problem happen . There are many open source software can do it such as: nagios, Zabbix, Zennos ...etc. In this case, i choose Zabbix because it is a enterprise-class open source distributed monitoring solution and  easy to deploy, easy to monitor, the lower hardware than another tool. Beside, Zabbix has the real-time graphing to monitor items by immediately graphed. 
+
+Zabbix has four component: Zabbix Server, Zabbix proxy, Zabbix Agent, Web Interface. Zabbix proxy is a cache for zabbix server and very useful in the big network. But in this case, i will not deployment that.
+
+\begin{itemize}
+  \item Zabbix Server: It's a central component and responsible for receive data from agent and store all configuration, statistical and operational data
+
+  \item Zabbix Agent: It's deployed on the remote node and collect the data to send Zabbix server.
+	\item Web Interface: It's provide to access zabbix from anywhere and any platform. Beside the web interface is very useful to manage and configure without using any command.
+\end{itemize}

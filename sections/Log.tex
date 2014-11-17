@@ -1,0 +1,117 @@
+
+
+Logging is an important activity in all computer systems, and openstack is the same. It allows an administrator to track down problematic activity that can be used to help provide a solution.Understanding where the services log and managing those logs to allow administrator to identify problems quickly and easily. 
+Understanding logging in openstack is important to ensure the  environment is healthy and the able to submit log entries back to the community to help fix bugs. For log investigation, some tool like cat, tail, grep may be useful to diagnose and identity the problem in the log file. But what happen if we have a lot of servers and we want to log collection, processing and extracting data from the huge of log event. Some command above cannot solve this problem. All of the log event need to be centralize. Therefore, I will deploy the central log server to collect log event, parsing, indexing and storing to help the administrator track down the problem. 
+There are many tool to do it but I need a solution easy to deploy, easy to operate, scale and open source. In this case, I choose some tool to do that. I install four component: Logstash, Elasticsearch, Kibana, Rsyslog (default install on ubuntu).
+	
+\begin{itemize}
+	\item Logstash: Receive log event from remote node and index the log. logstash is particularly useful since not all components follow the same format for log messages. logstash grok filter helps normalize various log messages into a format that can be indexed and searched.
+	\item Elasticsearch: Store the log event and allow to search  
+	\item Kibana: Provide the web interface to easy monitor and handle the log.
+	\item Rsyslog: send log event from service of openstack to logstash. It used to install on all of the remote node 
+\end{itemize}
+
+\subsection{Configure on the remote node}
+On the remote node, i must to send the log event to central node.
+First, i will enable openstack to send the rsyslog. Luckily, all of the service of openstack support rsyslog to send log event but the default is disable. To enable, we must change flag use\_syslog = false
+ to use\_syslog = true on the configure file of services. There is example for keystone service.
+	
+	\begin{verbatim}
+	sed -i "s/#verbose=false/verbose = False/" .../keystone.conf 
+	sed -i "s/#debug=false/debug = False/" .../keystone.conf 
+	sed -i "s/#use_syslog=false/use_syslog = True/" .../keystone.conf
+	sed -i "s/#syslog_log_facility=LOG_USER/syslog_log_facility 
+	= LOG_LOCAL0/" /etc/keystone/keystone.conf
+	\end{verbatim}
+In this case the syslog facility is use to determined which log of service. For priority, i only want to get the \textbf{WARNNING} and \textbf{ERROR}. 
+So, i must to use the two flag verbose = False and debug = False. This table is more detail about the priority on openstack.
+
+\begin{center}
+\begin{tabular}{ |c|c|c| } 
+ \hline
+ Status 			 & Flag 				& Log \\ 
+ \hline
+ verbose=true	 & debug=true		& DEBUG, ERROR, WARNING, INFO \\ 
+ verbose=false & debug=true	  & DEBUG, ERROR, WARNING, INFO \\ 
+ verbose=true	 & debug=false	& WARNING, INFO \\ 
+ verbose=true	 & debug=false	& WARNING, INFO \\ 
+ \hline
+\end{tabular}
+\end{center}
+
+\subsection{Configure on the central log node}
+On the central node, I install Logstash, elasticsearch and kibana and configure that to catch, index and store log event. 
+First, I configure Rsyslog to open the tcp port 9000 to receive log event from all nodes.
+	\begin{verbatim}
+		 local0.* 	@@logserver:9000  #nova
+		 local1.* 	@@logserver:9000  #glance
+		 local2.* 	@@logserver:9000  #keystone
+		 local3.* 	@@logserver:9000  #cinder
+		 local4.* 	@@logserver:9000  #neutron
+		 local5.* 	@@logserver:9000  #swiff
+		 local6.* 	@@logserver:9000  #ceilometer
+	\end{verbatim}
+Second, I configure logstash to receive log event, parsing and storing. I open the port 9000 to receive log event. 
+\begin{verbatim}
+	input {
+		tcp {
+	    	port => 9000
+	    	type => syslog
+	  	}	
+		}
+\end{verbatim}
+
+Third, I use the grok filter to parsing the log line.
+\begin{verbatim} 
+	filter {
+        if [type] == "syslog" {
+        grok {
+                patterns_dir=> "/opt/logstash/patterns"
+                match => ["message","%{OPENSTACK_SYSLOG}"]
+                add_tag => ["OpenStack"]
+            }
+        }
+\end{verbatim}
+The struct of log on service of openstack look like : 
+\begin{verbatim}
+<134> 2014-09-30T16:09:18.580221+07:00 controller 
+2014-09-30 16:09:18.579 1261 INFO oslo.messaging._drivers.impl_rabbit
+ [-] Connected to AMQP server on controller:5672. 
+\end{verbatim}
+So, I want extra data like that. 
+\begin{verbatim}
+	Timestamp 		: 2014-09-30T16:09:18.580221+07:00
+	Hostname 		  : controller
+	Timestamp		  : 2014-09-30 16:09:18.579
+	PID 			    : 1261
+	LOGLEVEL 		  : WARNING
+	PROGRAM 		  : oslo.messaging._drivers.impl_rabbit
+	ID 			      : [-]
+	MESSAGE		    : Connected to AMQP server on controller:5672
+\end{verbatim}
+Here, logstash support grow pattern to help parsing the log event. Therefore, i write a grow pattern to do that.
+
+
+\begin{verbatim}
+OPENSTACK_LOGLEVEL ([A-a]lert|ALERT|[T|t]race|TRACE| 
+[D|d]ebug|DEBUG|[N|n]otice|NOTICE|[I|i]nfo|INFO|[W|w]arn?(?:ing)?
+|WARN?(?:ING)?|[E|e]rr?(?:or)?|ERR?(?:OR)?|[C|c]rit?(?:ical)?
+|CRIT?(?:ICAL)?|[A|a]udit|AUDIT|[F|f]atal|FATAL|
+[S|s]evere|SEVERE|EMERG(?:ENCY)?|[Ee]merg(?:ency)?)
+OPENSTACK_LOG %{TIMESTAMP_ISO8601:OS_timestamp} %{POSINT:OS_pid} 
+%{OPENSTACK_LOGLEVEL:OS_loglevel} %{PROG:OS_program} 
+(?<OS_id>\[(?:(req-%{UUID}|%{UUID} |%{BASE16NUM}|None|-|%{SPACE}))+\])? 
+%{GREEDYDATA:OS_message} 
+OPENSTACK_LOGSTORAGE %{GREEDYDATA:OS_message}
+OPENSTACK_LOGLINE %{OPENSTACK_LOG}| %{OPENSTACK_LOGSTORAGE}
+OPENSTACK_SYSLOG(?<sys_pri>\<%{POSINT}\>)%{TIMESTAMP_ISO8601:timestamp} 
+%{IPORHOST:OS_hostname} %{OPENSTACK_LOGLINE}
+\end{verbatim}
+
+Finnaly, outputs the result of the second step to ElaticSearch
+\begin{verbatim}
+		output {
+			elasticsearch { host => localhost }
+			stdout { codec => rubydebug }
+		}
+\end{verbatim}
